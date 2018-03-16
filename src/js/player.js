@@ -27,4 +27,4 @@ import mergeOptions from './utils/merge-options.js';
 import {silencePromise} from './utils/promise';
 import textTrackConverter from './tracks/text-track-list-converter.js';
 import ModalDialog from './modal-dialog'
-
+import Tech from './tech/tech.js';

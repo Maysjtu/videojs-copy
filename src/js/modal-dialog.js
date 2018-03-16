@@ -235,15 +235,176 @@ class ModalDialog extends Component {
             this.dispose();
         }
     }
+    closeable(value) {
+        if (typeof value === 'boolean') {
+            const closeable = this.closeable_ = !!value;
+            let close = this.getChild('closeButton');
 
+            // If this is being made closeable and has no close button, add one.
+            if (closeable && !close) {
 
+                // The close button should be a child of the modal - not its
+                // content element, so temporarily change the content element.
+                const temp = this.contentEl_;
 
+                this.contentEl_ = this.el_;
+                close = this.addChild('closeButton', {controlText: 'Close Modal Dialog'});
+                this.contentEl_ = temp;
+                this.on(close, 'close', this.close);
+            }
 
+            // If this is being made uncloseable and has a close button, remove it.
+            if (!closeable && close) {
+                this.off(close, 'close', this.close);
+                this.removeChild(close);
+                close.dispose();
+            }
+        }
+        return this.closeable_;
+    }
+    fill() {
+        this.fillWith(this.content());
+    }
+    fillWith(content) {
+        const contentEl = this.contentEl();
+        const parentEl = contentEl.parentNode;
+        const nextSiblingEl = contentEl.nextSibling;
 
+        /**
+         * Fired just before a `ModalDialog` is filled with content.
+         *
+         * @event ModalDialog#beforemodalfill
+         * @type {EventTarget~Event}
+         */
+        this.trigger('beforemodalfill');
+        this.hasBeenFilled_ = true;
 
+        // Detach the content element from the DOM before performing
+        // manipulation to avoid modifying the live DOM multiple times.
+        parentEl.removeChild(contentEl);
+        this.empty();
+        Dom.insertContent(contentEl, content);
+        /**
+         * Fired just after a `ModalDialog` is filled with content.
+         *
+         * @event ModalDialog#modalfill
+         * @type {EventTarget~Event}
+         */
+        this.trigger('modalfill');
 
+        // Re-inject the re-filled content element.
+        if (nextSiblingEl) {
+            parentEl.insertBefore(contentEl, nextSiblingEl);
+        } else {
+            parentEl.appendChild(contentEl);
+        }
 
+        // make sure that the close button is last in the dialog DOM
+        const closeButton = this.getChild('closeButton');
 
+        if (closeButton) {
+            parentEl.appendChild(closeButton.el_);
+        }
+    }
+    empty() {
+        /**
+         * Fired just before a `ModalDialog` is emptied.
+         *
+         * @event ModalDialog#beforemodalempty
+         * @type {EventTarget~Event}
+         */
+        this.trigger('beforemodalempty');
+        Dom.emptyEl(this.contentEl());
 
+        /**
+         * Fired just after a `ModalDialog` is emptied.
+         *
+         * @event ModalDialog#modalempty
+         * @type {EventTarget~Event}
+         */
+        this.trigger('modalempty');
+    }
+    content(value) {
+        if (typeof value !== 'undefined') {
+            this.content_ = value;
+        }
+        return this.content_;
+    }
+    conditionalFocus_() {
+        const activeEl = document.activeElement;
+        const playerEl = this.player_.el_;
+
+        this.previouslyActiveEl_ = null;
+
+        if (playerEl.contains(activeEl) || playerEl === activeEl) {
+            this.previouslyActiveEl_ = activeEl;
+
+            this.focus();
+
+            this.on(document, 'keydown', this.handleKeyDown);
+        }
+    }
+    conditionalBlur_() {
+        if (this.previouslyActiveEl_) {
+            this.previouslyActiveEl_.focus();
+            this.previouslyActiveEl_ = null;
+        }
+
+        this.off(document, 'keydown', this.handleKeyDown);
+    }
+    //todo is this compelete???
+    handleKeyDown(event) {
+        // exit early if it isn't a tab key
+        if (event.which !== 9) {
+            return;
+        }
+
+        const focusableEls = this.focusableEls_();
+        const activeEl = this.el_.querySelector(':focus');
+        let focusIndex;
+
+        for (let i = 0; i < focusableEls.length; i++) {
+            if (activeEl === focusableEls[i]) {
+                focusIndex = i;
+                break;
+            }
+        }
+
+        if (document.activeElement === this.el_) {
+            focusIndex = 0;
+        }
+
+        if (event.shiftKey && focusIndex === 0) {
+            focusableEls[focusableEls.length - 1].focus();
+            event.preventDefault();
+        } else if (!event.shiftKey && focusIndex === focusableEls.length - 1) {
+            focusableEls[0].focus();
+            event.preventDefault();
+        }
+    }
+    focusableEls_() {
+        const allChildren = this.el_.querySelectorAll('*');
+
+        return Array.prototype.filter.call(allChildren, (child) => {
+            return ((child instanceof window.HTMLAnchorElement ||
+                child instanceof window.HTMLAreaElement) && child.hasAttribute('href')) ||
+                ((child instanceof window.HTMLInputElement ||
+                child instanceof window.HTMLSelectElement ||
+                child instanceof window.HTMLTextAreaElement ||
+                child instanceof window.HTMLButtonElement) && !child.hasAttribute('disabled')) ||
+                (child instanceof window.HTMLIFrameElement ||
+                child instanceof window.HTMLObjectElement ||
+                child instanceof window.HTMLEmbedElement) ||
+                (child.hasAttribute('tabindex') && child.getAttribute('tabindex') !== -1) ||
+                (child.hasAttribute('contenteditable'));
+        });
+    }
 
 }
+ModalDialog.prototype.options_ = {
+    pauseOnOpen: true,
+    temporary: true
+};
+
+Component.registerComponent('ModalDialog', ModalDialog);
+export default ModalDialog;

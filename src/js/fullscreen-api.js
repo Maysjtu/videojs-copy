@@ -33,7 +33,7 @@ const apiMap = [
         'webkitfullscreenchange',
         'webkitfullscreenerror'
     ],
-    //Old WebKit (Safari 5.1) todo ??? webkitCancelFullScreen
+    //Old WebKit (Safari 5.1) todo ??? webkitCancelFullScreen need to confirm
     [
         'webkitRequestFullScreen',
         'webkitCancelFullScreen',
