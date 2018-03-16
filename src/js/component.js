@@ -1079,8 +1079,153 @@ class Component {
      * @listens Component#touchend
      * @listens Component#touchcancel
      */
-}
+    enableTouchActivity(){
+        if(!this.player() || !this.player().reportUserActivity()) {
+            return;
+        }
+        const report = Fn.bind(this.player(), this.player().reportUserActivity());
+        let touchHolding;
+        this.on('touchstart', function(){
+            report();
+            this.clearInterval(touchHolding);
+            touchHolding = this.setInterval(report, 250);
+        });
 
+        const touchEnd = function(event){
+            report();
+            this.clearInterval(touchHolding);
+        };
+        this.on('touchmove', report);
+        this.on('touchend', touchEnd);
+        this.on('touchcancel', touchEnd);
+    }
+    setTimeout(fn, timeout) {
+        fn = Fn.bind(this. fn);
+        const timeoutId = window.setTimeout(fn, timeout);
+        const disposeFn = () => this.clearTimeout(timeoutId);
+        disposeFn.guid = `vjs-timeout-${timeoutId}`;
+        this.on('dispose', disposeFn);
+        return timeoutId;
+    }
+    clearTimeout(timeoutId) {
+        window.clearTimeout(timeoutId);
+        const disposeFn = () => {};
+        disposeFn.guid = `vjs-timeout-${timeoutId}`;
+        this.off('dispose', disposeFn);
+        return timeoutId;
+    }
+    setInterval(fn, interval) {
+        fn = Fn.bind(this, fn);
+
+        const intervalId = window.setInterval(fn, interval);
+
+        const disposeFn = () => this.clearInterval(intervalId);
+
+        disposeFn.guid = `vjs-interval-${intervalId}`;
+
+        this.on('dispose', disposeFn);
+
+        return intervalId;
+    }
+    clearInterval(intervalId) {
+        window.clearInterval(intervalId);
+
+        const disposeFn = function() {};
+
+        disposeFn.guid = `vjs-interval-${intervalId}`;
+
+        this.off('dispose', disposeFn);
+
+        return intervalId;
+    }
+    requestAnimationFrame(fn) {
+        if(this.supportsRaf_) {
+            fn = Fn.bind(this, fn);
+
+            const id = window.requestAnimationFrame(fn);
+            const disposeFn = () => this.cancelAnimationFrame(id);
+
+            disposeFn.guid = `vjs-raf-${id}`;
+            this.on('dispose', disposeFn);
+            return id;
+        }
+        return this.setTimeout(fn, 1000 / 60);
+    }
+    cancelAnimationFrame(id) {
+        if(this.supportsRaf_) {
+            window.cancelAnimationFrame(id);
+            const disposeFn = () => {};
+            disposeFn.guid = `vjs-raf-${id}`;
+            this.off('dispose', disposeFn);
+            return id;
+        }
+        return this.clearTimeout(id);
+    }
+    static registerComponent(name, ComponentToRegister) {
+        if( typeof name !=='string' || !name) {
+            throw new Error(`Illegal component name,"${name}"; must be a non-empty string.`);
+        }
+
+        const Tech = Component.getComponent('Tech');
+        const isTech = Tech && Tech.isTech(ComponentToRegister);
+        const isComp = Component === ComponentToRegister || Component.prototype.isPrototypeOf(ComponentToRegister.prototype);
+
+        if (isTech || !isComp) {
+            let reason;
+
+            if (isTech) {
+                reason = 'techs must be registered using Tech.registerTech()';
+            } else {
+                reason = 'must be a Component subclass';
+            }
+
+            throw new Error(`Illegal component, "${name}"; ${reason}.`);
+        }
+
+        name = toTitleCase(name);
+
+        if (!Component.components_) {
+            Component.components_ = {};
+        }
+        const Player = Component.getComponent('Player');
+
+        if (name === 'Player' && Player && Player.players) {
+            const players = Player.players;
+            const playerNames = Object.keys(players);
+
+            // If we have players that were disposed, then their name will still be
+            // in Players.players. So, we must loop through and verify that the value
+            // for each item is not null. This allows registration of the Player component
+            // after all players have been disposed or before any were created.
+            if (players &&
+                playerNames.length > 0 &&
+                playerNames.map((pname) => players[pname]).every(Boolean)) {
+                throw new Error('Can not register Player component after player has been created.');
+            }
+        }
+        Component.components_[name] = ComponentToRegister;
+
+        return ComponentToRegister;
+    }
+
+    static getComponent(name) {
+        if (!name) {
+            return;
+        }
+
+        name = toTitleCase(name);
+
+        if (Component.components_ && Component.components_[name]) {
+            return Component.components_[name];
+        }
+    }
+
+}
+Component.prototype.supportsRaf_ = typeof window.requestAnimationFrame === 'function' &&
+    typeof window.cancelAnimationFrame === 'function';
+
+Component.registerComponent('Component', Component);
+export default Component;
 
 
 
