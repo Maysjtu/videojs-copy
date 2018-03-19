@@ -1,52 +1,51 @@
-
 /**
- * @file audio-track-list.js
+ * @file video-track-list.js
  */
 import TrackList from './track-list';
 import * as browser from '../utils/browser.js';
 import document from 'global/document';
 
 /**
- * Anywhere we call this function we diverge from the spec
- * as we only support one enabled audiotrack at a time
+ * Un-select all other {@link VideoTrack}s that are selected.
  *
- * @param {AudioTrackList} list
+ * @param {VideoTrackList} list
  *        list to work on
  *
- * @param {AudioTrack} track
+ * @param {VideoTrack} track
  *        The track to skip
  *
  * @private
  */
-const diableOthers = function(list, track) {
-    for(let i = 0; i < list.length; i++) {
-        if(!Object.keys(list[i]).length || track.id == list[i].id) {
+const disableOthers = function(list, track) {
+    for (let i = 0; i < list.length; i++) {
+        if (!Object.keys(list[i]).length || track.id === list[i].id) {
             continue;
         }
-        list[i].enabled = false;
+        // another video track is enabled, disable it
+        list[i].selected = false;
     }
 };
-
 /**
- * The current list of {@link AudioTrack} for a media file.
+ * The current list of {@link VideoTrack} for a video.
  *
- * @see [Spec]{@link }
+ * @see [Spec]{@link https://html.spec.whatwg.org/multipage/embedded-content.html#videotracklist}
  * @extends TrackList
  */
+class VideoTrackList extends TrackList {
 
-class AudioTrackList extends TrackList {
     /**
      * Create an instance of this class.
      *
-     * @param {AudioTrack[]} [tracks=[]]
-     *        A list of `AudioTrack` to instantiate the list with.
+     * @param {VideoTrack[]} [tracks=[]]
+     *        A list of `VideoTrack` to instantiate the list with.
      */
     constructor(tracks = []){
         let list;
+
         // make sure only 1 track is enabled
         // sorted from last index to first index
         for (let i = tracks.length - 1; i >= 0; i--) {
-            if (tracks[i].enabled) {
+            if (tracks[i].selected) {
                 disableOthers(tracks, tracks[i]);
                 break;
             }
@@ -60,42 +59,56 @@ class AudioTrackList extends TrackList {
                     list[prop] = TrackList.prototype[prop];
                 }
             }
-            for (const prop in AudioTrackList.prototype) {
+            for (const prop in VideoTrackList.prototype) {
                 if (prop !== 'constructor') {
-                    list[prop] = AudioTrackList.prototype[prop];
+                    list[prop] = VideoTrackList.prototype[prop];
                 }
             }
         }
 
         list = super(tracks, list);
         list.changing_ = false;
+        /**
+         * @member {number} VideoTrackList#selectedIndex
+         *         The current index of the selected {@link VideoTrack`}.
+         */
+        Object.defineProperty(list, 'selectedIndex', {
+            get() {
+                for (let i = 0; i < this.length; i++) {
+                    if (this[i].selected) {
+                        return i;
+                    }
+                }
+                return -1;
+            },
+            set() {}
+        });
         return list;
     }
     /**
-     * Add an {@link AudioTrack} to the `AudioTrackList`.
+     * Add a {@link VideoTrack} to the `VideoTrackList`.
      *
-     * @param {AudioTrack} track
-     *        The AudioTrack to add to the list
+     * @param {VideoTrack} track
+     *        The VideoTrack to add to the list
      *
      * @fires TrackList#addtrack
      */
     addTrack(track) {
-        if(track.enabled) {
-            diableOthers(this, track);
+        if (track.selected) {
+            disableOthers(this, track);
         }
+
         super.addTrack(track);
         // native tracks don't have this
         if (!track.addEventListener) {
             return;
         }
+
         /**
-         * @listens AudioTrack#enabledchange
+         * @listens VideoTrack#selectedchange
          * @fires TrackList#change
          */
-        track.addEventListener('enabledchange', () => {
-            // when we are disabling other tracks (since we don't support
-            // more than one track at a time) we will set changing_
-            // to true so that we don't trigger additional change events
+        track.addEventListener('selectedchange', () => {
             if (this.changing_) {
                 return;
             }
@@ -106,4 +119,4 @@ class AudioTrackList extends TrackList {
         });
     }
 }
-export default AudioTrackList;
+export default VideoTrackList;
