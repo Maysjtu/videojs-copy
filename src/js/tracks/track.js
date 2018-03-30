@@ -41,15 +41,6 @@ class Track extends EventTarget {
     constructor(options = {}) {
         super();
         let track = this;
-        if (browser.IS_IE8) {
-            track = document.createElement('custom');
-            for (const prop in Track.prototype) {
-                if (prop !== 'constructor') {
-                    track[prop] = Track.prototype[prop];
-                }
-            }
-        }
-
         const trackProps = {
             id: options.id || 'vjs_track_' + Guid.newGUID(),
             kind: options.kind || '',

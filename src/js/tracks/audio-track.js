@@ -42,13 +42,6 @@ class AudioTrack extends Track {
         const track = super(settings);
         let enabled = false;
 
-        if (browser.IS_IE8) {
-            for (const prop in AudioTrack.prototype) {
-                if (prop !== 'constructor') {
-                    track[prop] = AudioTrack.prototype[prop];
-                }
-            }
-        }
         /**
          * @memberof AudioTrack
          * @member {boolean} enabled

@@ -345,7 +345,7 @@ function evented(target, options = {}) {
 }
 
 export default evented;
-export {isEvented};
+export { isEvented };
 
 
 

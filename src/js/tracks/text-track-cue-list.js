@@ -1,8 +1,6 @@
 /**
  * @file text-track-cue-list.js
  */
-import * as browser from '../utils/browser.js';
-import document from 'global/document';
 
 /**
  * @typedef {Object} TextTrackCueList~TextTrackCue
@@ -27,8 +25,8 @@ import document from 'global/document';
  *
  * @see [Spec]{@link https://html.spec.whatwg.org/multipage/embedded-content.html#texttrackcuelist}
  */
-
 class TextTrackCueList {
+
     /**
      * Create an instance of this class..
      *
@@ -36,33 +34,21 @@ class TextTrackCueList {
      *        A list of cues to be initialized with
      */
     constructor(cues) {
-        let list = this;
-        if (browser.IS_IE8) {
-            list = document.createElement('custom');
+        TextTrackCueList.prototype.setCues_.call(this, cues);
 
-            for (const prop in TextTrackCueList.prototype) {
-                if (prop !== 'constructor') {
-                    list[prop] = TextTrackCueList.prototype[prop];
-                }
-            }
-        }
-        TextTrackCueList.prototype.setCues_.call(list, cues);
         /**
          * @memberof TextTrackCueList
          * @member {number} length
          *         The current number of `TextTrackCue`s in the TextTrackCueList.
          * @instance
          */
-        Object.defineProperty(list, 'length', {
+        Object.defineProperty(this, 'length', {
             get() {
                 return this.length_;
             }
         });
-
-        if (browser.IS_IE8) {
-            return list;
-        }
     }
+
     /**
      * A setter for cues in this list. Creates getters
      * an an index for the cues.
@@ -98,6 +84,7 @@ class TextTrackCueList {
             }
         }
     }
+
     /**
      * Get a `TextTrackCue` that is currently in the `TextTrackCueList` by id.
      *
@@ -122,3 +109,5 @@ class TextTrackCueList {
         return result;
     }
 }
+
+export default TextTrackCueList;

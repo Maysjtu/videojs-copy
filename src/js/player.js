@@ -28,3 +28,16 @@ import {silencePromise} from './utils/promise';
 import textTrackConverter from './tracks/text-track-list-converter.js';
 import ModalDialog from './modal-dialog'
 import Tech from './tech/tech.js';
+import * as middleware from './tech/middleware.js';
+import {ALL as TRACK_TYPES} from './tracks/track-types';
+import filterSource from './utils/filter-source';
+
+// The following imports are used only to ensure that the corresponding modules
+// are always included in the video.js package. Importing the modules will
+// execute them and they will register themselves with video.js.
+import './tech/loader.js';
+import './poster-image.js';
+
+
+
+

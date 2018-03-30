@@ -62,19 +62,62 @@ class HTMLTrackElement extends EventTarget {
         super();
 
         let readyState;
-        let trackElement = this; // eslint-disable-line
 
-        if (browser.IS_IE8) {
-            trackElement = document.createElement('custom');
-
-            for (const prop in HTMLTrackElement.prototype) {
-                if (prop !== 'constructor') {
-                    trackElement[prop] = HTMLTrackElement.prototype[prop];
-                }
-            }
-        }
         const track = new TextTrack(options);
 
+        this.kind = track.kind;
+        this.src = track.src;
+        this.srclang = track.language;
+        this.label = track.label;
+        this.default = track.default;
+        Object.defineProperties(this, {
 
+            /**
+             * @memberof HTMLTrackElement
+             * @member {HTMLTrackElement~ReadyState} readyState
+             *         The current ready state of the track element.
+             * @instance
+             */
+            readyState: {
+                get() {
+                    return readyState;
+                }
+            },
+            /**
+             * @memberof HTMLTrackElement
+             * @member {TextTrack} track
+             *         The underlying TextTrack object.
+             * @instance
+             *
+             */
+            track: {
+                get() {
+                    return track;
+                }
+            }
+        });
+
+        readyState = NONE;
+        /**
+         * @listens TextTrack#loadeddata
+         * @fires HTMLTrackElement#load
+         */
+        track.addEventListener('loadeddata', () => {
+            readyState = LOADED;
+
+            this.trigger({
+                type: 'load',
+                target: this
+            });
+        });
     }
 }
+HTMLTrackElement.prototype.allowedEvents_ = {
+    load: 'load'
+};
+
+HTMLTrackElement.NONE = NONE;
+HTMLTrackElement.LOADING = LOADING;
+HTMLTrackElement.LOADED = LOADED;
+HTMLTrackElement.ERROR = ERROR;
+export default HTMLTrackElement;

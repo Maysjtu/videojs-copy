@@ -62,7 +62,7 @@ function rangeCheck(fnName, index, maxIndex) {
  *        The function name to use for logging
  *
  * @param {string} valueIndex
- *        The proprety that should be used to get the time. should be 'start' or 'end'
+ *        The property that should be used to get the time. should be 'start' or 'end'
  *
  * @param {Array} ranges
  *        An array of time ranges
@@ -80,7 +80,9 @@ function rangeCheck(fnName, index, maxIndex) {
 function getRange(fnName, valueIndex, ranges, rangeIndex) {
     rangeCheck(fnName, rangeIndex, ranges.length - 1);
     return ranges[rangeIndex][valueIndex];
+   //ranges[0][0]
 }
+//rangeCheck('start', null, 0)
 /**
  * Create a time range object given ranges of time.
  *
@@ -99,10 +101,14 @@ function createTimeRangesObj(ranges) {
             }
         };
     }
+    //{ length: 1
+    //  start: getRange('start', 0, [[0,0]])
+    //  end: getRange('end', 0, [[0,0]])
+    // }
     return {
         length: ranges.length,
         start: getRange.bind(null, 'start', 0, ranges),
-        end: getRange.bind(null, 'end', 0, ranges)
+        end: getRange.bind(null, 'end', 1, ranges)
     }
 }
 
@@ -123,6 +129,7 @@ export function createTimeRanges(start, end) {
     } else if (start === undefined || end === undefined) {
         return createTimeRangesObj();
     }
+    //[[0,0]]
     return createTimeRangesObj([[start, end]]);
 }
 
