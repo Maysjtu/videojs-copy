@@ -37,6 +37,13 @@ import filterSource from './utils/filter-source';
 // execute them and they will register themselves with video.js.
 import './tech/loader.js';
 import './poster-image.js';
+import './tracks/text-track-display.js';
+import './loading-spinner.js';
+import './big-play-button.js';
+import './close-button.js';
+import './control-bar/control-bar.js';
+import './error-display.js';
+import './tracks/text-track-settings.js';
 
 
 

@@ -1228,28 +1228,3 @@ Component.registerComponent('Component', Component);
 export default Component;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
