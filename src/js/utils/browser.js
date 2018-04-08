@@ -85,6 +85,9 @@ export const IE_VERSION = (function() {
     return version;
 }());
 
+export const IS_SAFARI = (/Safari/i).test(USER_AGENT) && !IS_CHROME && !IS_ANDROID && !IS_EDGE;
+export const IS_ANY_SAFARI = IS_SAFARI || IS_IOS;
+
 export const TOUCH_ENABLED = Dom.isReal() && (
     'ontouchstart' in window ||
     window.DocumentTouch &&

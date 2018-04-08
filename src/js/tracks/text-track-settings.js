@@ -467,12 +467,14 @@ class TextTrackSettings extends ModalDialog {
                 `<button class="vjs-done-button">${this.localize('Done')}</button>`
             ].join('')
         });
+
+
     }
 
     content() {
         return [
-            this.createElColors_(),
-            this.createElFont_(),
+            this.createElColo_rs_(),
+            this.createElFont(),
             this.createElControls_()
         ];
     }

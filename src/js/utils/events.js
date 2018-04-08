@@ -442,11 +442,3 @@ export function one(elem, type, fn) {
     on(elem, type, func);
 }
 
-
-
-
-
-
-
-
-
